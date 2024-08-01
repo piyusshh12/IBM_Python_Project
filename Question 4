@@ -1,0 +1,20 @@
+from io import StringIO
+url = 'https://cf-courses-data.s3.us.cloud-object-storage.appdomain.cloud/IBMDeveloperSkillsNetwork-PY0220EN-SkillsNetwork/labs/project/stock.html'
+response = requests.get(url)
+html_data_2 = response.text
+
+soup = BeautifulSoup(html_data_2, 'html.parser')
+
+tables = soup.find_all('table')
+
+if len(tables) < 2:
+    raise ValueError("Expected at least 2 tables, but found fewer. Check the table index.")
+table = tables[1]  
+table_html = str(table)
+table_io = StringIO(table_html)
+gme_revenue = pd.read_html(table_io)[0]
+print(f"Column names: {gme_revenue.columns}")
+if 'GameStop Quarterly Revenue (Millions of US $)' in gme_revenue.columns:
+    gme_revenue.columns = ['Date', 'Revenue']
+gme_revenue['Revenue'] = gme_revenue['Revenue'].replace('[\$,]', '', regex=True).astype(float)
+print(gme_revenue.tail())
